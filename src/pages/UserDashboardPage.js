@@ -1,80 +1,79 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Button, List, ListItem, ListItemText } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
+import { Container, Typography, Button, Card, CardContent, CardActions, Grid, Box } from '@mui/material';
+import ClaimIcon from '@mui/icons-material/HowToReg';
 
 export default function UserDashboardPage() {
-  const [reports, setReports] = useState([]); // State untuk menyimpan laporan
+  const [reports, setReports] = useState([]);
+  const navigate = useNavigate();
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-  // Gunakan useHistory untuk navigasi
-  const history = useNavigate();
-
-  // Fungsi untuk menangani logout
   const handleLogout = () => {
-    // Opsi: Kirim permintaan ke server untuk menginformasikan logout jika diperlukan
-    // fetch('/api/users/logout', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-    //   },
-    // })
-    // .then(() => {
-      // Hapus token dari localStorage
-      localStorage.removeItem('userToken');
-      // Arahkan pengguna ke halaman login atau home
-      history.push('/login');
-    // });
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userInfo');
+    navigate('/login');
   };
 
   useEffect(() => {
+    // Ambil daftar laporan kehilangan atau barang yang ditemukan
     fetch('/lostitems', {
-      headers: {
-        // Pastikan untuk mengirimkan token atau kredensial jika diperlukan oleh API
-        'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-      }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
     })
     .then(response => response.json())
-    .then(data => {
-      setReports(data); // Simpan laporan ke dalam state
-    })
-    .catch(error => console.error("There was an error!", error));
+    .then(data => setReports(data))
+    .catch(error => console.error("Error fetching data:", error));
   }, []);
 
+  const claimItem = (itemId) => {
+    fetch(`http://localhost:5000/founditems/claim/${itemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
+      },
+      credentials: 'include',
+      body: JSON.stringify({ userId: localStorage.getItem('userId') })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to claim item');
+      alert('Barang berhasil diklaim. Cek email Anda untuk detail lebih lanjut.');
+      navigate('/dashboard'); // Refresh atau navigasi ke halaman yang sesuai
+    })
+    .catch(error => {
+      console.error('Error claiming item:', error);
+      alert('Gagal mengklaim barang. Silakan coba lagi.');
+    });
+  };
+
+  // Render komponen
   return (
     <Container sx={{ marginTop: 8 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard Pengguna
+      <Typography variant="h4" gutterBottom>
+        Dashboard Pengguna - Selamat Datang, {userInfo.name}
       </Typography>
-      <List>
+      <Grid container spacing={2}>
         {reports.map((report, index) => (
-          <ListItem key={index} alignItems="flex-start">
-            <ListItemText
-              primary={report.title} // Misalkan, judul laporan
-              secondary={
-                <>
-                  <Typography
-                    sx={{ display: 'inline' }}
-                    component="span"
-                    variant="body2"
-                    color="text.primary"
-                  >
-                    {report.description} {/* Deskripsi laporan */}
-                  </Typography>
-                  {" — "}{report.location} {/* Lokasi kehilangan */}
-                </>
-              }
-            />
-            {/* Link untuk melihat detail */}
-            <Button component={Link} to={`/report/${report._id}`} sx={{ mr: 1 }}>
-              Lihat Detail
-            </Button>
-            {/* Link untuk mengedit laporan */}
-            <Button component={Link} to={`/edit-report/${report._id}`}>
-              Edit
-            </Button>
-          </ListItem>
+          <Grid item xs={12} md={6} lg={4} key={index}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Jenis Item: {report.itemType}</Typography>
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2">Deskripsi: {report.description}</Typography>
+                  <Typography variant="body2">Lokasi: {report.location}</Typography>
+                  <Typography variant="body2">Kontak: {report.contactInfo}</Typography>
+                  <Typography variant="body2">Waktu Kehilangan: {new Date(report.timeLost).toLocaleString()}</Typography>
+                </Box>
+              </CardContent>
+              <CardActions disableSpacing>
+                <Button startIcon={<ClaimIcon />} variant="contained" color="primary" onClick={() => claimItem(report._id)}>
+                  Klaim Barang Ini
+                </Button>
+                {/* Tambahkan tombol lain jika diperlukan */}
+              </CardActions>
+            </Card>
+          </Grid>
         ))}
-      </List>
+      </Grid>
       <Button variant="contained" color="primary" sx={{ mt: 2 }} component={Link} to='/report'>
         Buat Laporan Kehilangan Baru
       </Button>

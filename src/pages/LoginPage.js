@@ -5,43 +5,47 @@ import { Container, TextField, Button } from '@mui/material';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const history = useNavigate(); // Untuk navigasi setelah login berhasil
+  const navigate = useNavigate(); // Untuk navigasi setelah login berhasil
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const userCredentials = { email, password };
+    console.log('Sending these credentials:', userCredentials);
 
     fetch('/users/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    'Content-Type': 'application/json'
       },
       body: JSON.stringify(userCredentials),
     })
     .then(response => {
-      console.log(response.status); // Tambahkan ini untuk memeriksa status code
-      if (!response.ok) {
-        response.text().then(text => console.log(text)); // Ini akan menampilkan badan respons jika ada
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
+      console.log('Response status:', response.status);
+  if (!response.ok) {
+    response.text().then(text => {
+      console.log('Server response text:', text); // Log ini akan menunjukkan HTML atau teks yang sebenarnya dari respons
+      throw new Error('Network response was not ok');
+    });
+  }
+  return response.json();
     })
     .then(data => {
-      if (data.token) {
-        // Simpan token ke localStorage atau sesuai kebutuhan Anda
+      console.log(data);
+      if (data.token && data.user) { // Pastikan ada pengecekan token yang valid
         localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userInfo', JSON.stringify(data.user)); // Pastikan data.user ada dan berisi data yang benar
         alert('Login berhasil!');
-        // Redirect pengguna atau ubah state aplikasi, misalnya ke dashboard
-        history.push('/dashboard'); // Sesuaikan dengan path yang diinginkan setelah login
+        navigate('/dashboard');
       } else {
         // Handle jika respons tidak mengandung token
-        alert('Login gagal: ' + (data.message || 'Tidak ada token'));
+        alert('Login status: ' + (data.message || 'Tidak ada token'));
       }
     })
     .catch((error) => {
       // Tangkap error baik dari network atau server-side
-      alert('Login gagal: ' + error.message);
-      console.error('Error:', error);
+      console.error('Login error:', error);
+  alert('Login status: ' + error.message);
     });
   };
 

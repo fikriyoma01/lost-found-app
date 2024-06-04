@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Typography } from '@mui/material';
 
 export default function Header() {
+  const isUserLoggedIn = Boolean(localStorage.getItem('userToken')); // or your authentication check
+
   return (
     <AppBar position="static">
       <Toolbar>
@@ -11,10 +13,14 @@ export default function Header() {
         </Typography>
         <Button color="inherit" component={Link} to="/">Beranda</Button>
         <Button color="inherit" component={Link} to="/register">Daftar</Button>
-        <Button color="inherit" component={Link} to="/login">Masuk</Button>
+        {!isUserLoggedIn && <Button color="inherit" component={Link} to="/login">Masuk</Button>}
         <Button color="inherit" component={Link} to="/search">Cari</Button>
-        {/* Tampilkan ini hanya jika pengguna telah masuk */}
-        <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
+        {isUserLoggedIn && (
+          <>
+            <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
+            <Button color="inherit" component={Link} to="/claimed">Klaim Saya</Button> {/* Button baru */}
+          </>
+        )}
       </Toolbar>
     </AppBar>
   );

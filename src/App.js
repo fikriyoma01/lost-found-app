@@ -8,6 +8,7 @@ import ItemDetailPage from './pages/ItemDetailPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import ReportLossPage from './pages/ReportLossPage';
 import Header from './components/Header';
+import ClaimedItemsPage from './pages/ClaimedItemsPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/item/:id" element={<ItemDetailPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
           <Route path="/report" element={<ReportLossPage />} /> {/* Rute baru untuk ReportLossPage */}
+          <Route path="/claimed" element={<ClaimedItemsPage />} />
           {/* Feel free to add more routes as needed */}
         </Routes>
       </div>
