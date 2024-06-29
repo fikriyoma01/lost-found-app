@@ -8,7 +8,7 @@ export default function ClaimedItemsPage() {
   useEffect(() => {
     // Ganti dengan endpoint API yang benar untuk mengambil item-item yang telah diklaim oleh pengguna
     fetch(`http://localhost:5000/founditems/claimeditems/${userId}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(response => response.json())
     .then(data => setClaimedItems(data))

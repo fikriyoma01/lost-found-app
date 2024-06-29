@@ -1,10 +1,11 @@
 import React from 'react';
 import { Formik, Form, Field } from 'formik';
-import { Button, TextField, Container, MenuItem } from '@mui/material';
+import { Button, TextField, Container, MenuItem, Typography } from '@mui/material';
 import * as Yup from 'yup';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { useNavigate } from 'react-router-dom';
 
 const itemTypes = [
   { value: 'elektronik', label: 'Elektronik' },
@@ -22,8 +23,13 @@ const ReportLossSchema = Yup.object().shape({
 });
 
 export default function ReportLossPage() {
+  const navigate = useNavigate();
+
   return (
     <Container component="main" maxWidth="sm" sx={{ mt: 3 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Laporkan Kehilangan
+      </Typography>
       <Formik
         initialValues={{
           itemType: '',
@@ -33,37 +39,51 @@ export default function ReportLossPage() {
           contactInfo: '',
         }}
         validationSchema={ReportLossSchema}
-        onSubmit={(values, { setSubmitting, resetForm }) => {
-          // Endpoint API untuk menambahkan laporan kehilangan baru
-          const endpoint = '/lostitems/add';
-          // Opsi fetch untuk permintaan POST
-          const options = {
+        onSubmit={(values, { setSubmitting, resetForm, setErrors }) => {
+          const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+          if (!userInfo || !userInfo._id) {
+            alert('Anda harus login untuk melaporkan kehilangan.');
+            navigate('/login');
+            return;
+          }
+
+          const reportData = {
+            ...values,
+            reportedBy: userInfo._id,
+          };
+
+          fetch('/lostitems/add', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(values),
-          };
-        
-          // Membuat permintaan ke server
-          fetch(endpoint, options)
-            .then(response => response.json())
+            body: JSON.stringify(reportData),
+          })
+            .then(response => {
+              if (!response.ok) {
+                return response.json().then(err => {
+                  throw new Error(err.message || 'Terjadi kesalahan saat mengirim laporan.');
+                });
+              }
+              return response.json();
+            })
             .then(data => {
               console.log('Success:', data);
               alert('Laporan berhasil dikirim!');
               resetForm();
+              navigate('/dashboard');
             })
             .catch((error) => {
               console.error('Error:', error);
-              alert('Terjadi kesalahan, laporan gagal dikirim.');
+              setErrors({ submit: error.message });
             })
             .finally(() => {
-              setSubmitting(false); // Hentikan status submitting
+              setSubmitting(false);
             });
         }}
-        
       >
-        {({ errors, touched, handleChange, handleBlur, setFieldValue, values }) => (
+        {({ errors, touched, handleChange, handleBlur, setFieldValue, values, isSubmitting }) => (
           <Form>
             <Field as={TextField}
               select
@@ -135,14 +155,21 @@ export default function ReportLossPage() {
               onBlur={handleBlur}
               sx={{ mb: 2 }}
             />
+          {errors.submit && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                {errors.submit}
+              </Typography>
+            )}
+            
             <Button
               type="submit"
               fullWidth
               variant="contained"
               color="primary"
+              disabled={isSubmitting}
               sx={{ mt: 3 }}
             >
-              Laporkan Kehilangan
+              {isSubmitting ? 'Mengirim...' : 'Laporkan Kehilangan'}
             </Button>
           </Form>
         )}

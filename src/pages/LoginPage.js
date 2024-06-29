@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate} from 'react-router-dom'; // Impor useHistory untuk navigasi
+import { useNavigate} from 'react-router-dom'; 
 import { Container, TextField, Button } from '@mui/material';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate(); // Untuk navigasi setelah login berhasil
+  const navigate = useNavigate(); 
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -24,7 +24,7 @@ export default function LoginPage() {
       console.log('Response status:', response.status);
   if (!response.ok) {
     response.text().then(text => {
-      console.log('Server response text:', text); // Log ini akan menunjukkan HTML atau teks yang sebenarnya dari respons
+      console.log('Server response text:', text); 
       throw new Error('Network response was not ok');
     });
   }
@@ -33,7 +33,7 @@ export default function LoginPage() {
     .then(data => {
       console.log(data);
       if (data.token && data.user) { // Pastikan ada pengecekan token yang valid
-        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('token', data.token);
         localStorage.setItem('userInfo', JSON.stringify(data.user)); // Pastikan data.user ada dan berisi data yang benar
         alert('Login berhasil!');
         navigate('/dashboard');

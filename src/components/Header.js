@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Button, Typography } from '@mui/material';
 
 export default function Header() {
-  const isUserLoggedIn = Boolean(localStorage.getItem('userToken')); // or your authentication check
+  const isUserLoggedIn = Boolean(localStorage.getItem('token')); // or your authentication check
 
   return (
     <AppBar position="static">
